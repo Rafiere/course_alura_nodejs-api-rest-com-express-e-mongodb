@@ -1,30 +1,35 @@
-import { response } from "express";
 import livros from "../models/Livro.js";
 
 /* Nesse arquivo, temos a implementação dos métodos que serão chamados quando as rotas forem ativadas. */
 
 class LivroController {
   static listarLivros = (req, res) => {
-    livros.find((err, livros) => {
-      if (err) {
-        console.log("Um erro foi gerado!");
-      }
-      res.status(200).json(livros);
-    });
+    livros
+      .find()
+      .populate("autor")
+      .exec((err, livros) => {
+        if (err) {
+          console.log("Um erro foi gerado!");
+        }
+        res.status(200).json(livros);
+      });
   };
 
   static obterLivroPorId = (req, res) => {
     const id = req.params.id;
 
-    livros.findById(id, (err, livro) => {
-      if (err) {
-        res
-          .status(400)
-          .send({ message: `O livro com o id ${id} não foi encontrado.` });
-      } else {
-        res.status(200).send(livro);
-      }
-    });
+    livros
+      .findById(id)
+      .populate("autor", "nome")
+      .exec((err, livro) => {
+        if (err) {
+          res
+            .status(400)
+            .send({ message: `O livro com o id ${id} não foi encontrado.` });
+        } else {
+          res.status(200).send(livro);
+        }
+      });
   };
 
   static cadastrarLivro = (req, res) => {
@@ -70,6 +75,21 @@ class LivroController {
           .send({ message: `O livro com o ID ${id} não foi removido.` });
       }
     });
+  };
+
+  static listarLivroPorEditora = (req, res) => {
+    const editora = req.query.editora;
+
+    /* Estamos localizando o que a editora for igual ao parâmetro "editora". */
+    livros.find(
+      {
+        editora: editora,
+      },
+      {},
+      (err, livros) => {
+        res.status(200).send(livros);
+      }
+    );
   };
 }
 
